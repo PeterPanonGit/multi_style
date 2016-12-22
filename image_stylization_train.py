@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Trains the N-styles style transfer model."""
+"""Trains an N-styles style transfer model on the cheap, or train from scratch
+
+Training is done by finetuning the instance norm parameters of a pre-trained
+N-styles style transfer model.
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -51,6 +55,8 @@ flags.DEFINE_integer('task', 0,
                      'Task ID. Used when training with multiple '
                      'workers to identify each worker.')
 flags.DEFINE_integer('train_steps', 40000, 'Number of training steps.')
+flags.DEFINE_string('checkpoint', None,
+                    'Checkpoint file for the pretrained model.')
 flags.DEFINE_string('content_weights', DEFAULT_CONTENT_WEIGHTS,
                     'Content weights')
 flags.DEFINE_string('master', '',
@@ -115,20 +121,32 @@ def main(unused_argv=None):
       for key, value in loss_dict.iteritems():
         tf.scalar_summary(key, value)
 
-      # Set up training
+      saver_vgg = tf.train.Saver(slim.get_variables('vgg_16'))
       optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
-      train_op = slim.learning.create_train_op(
-          total_loss, optimizer, clip_gradient_norm=FLAGS.clip_gradient_norm,
-          summarize_gradients=False)
 
-      # Function to restore VGG16 parameters
-      # TODO(iansimon): This is ugly, but assign_from_checkpoint_fn doesn't
-      # exist yet.
-      saver = tf.train.Saver(slim.get_variables('vgg_16'))
-      def init_fn(session):
-        saver.restore(session, vgg.checkpoint_file())
+      if FLAGS.checkpoint is not None:
+        instance_norm_vars = [var for var in slim.get_variables('transformer')
+                              if 'InstanceNorm' in var.name]
+        other_vars = [var for var in slim.get_variables('transformer')
+                      if 'InstanceNorm' not in var.name]
+        saver_n_styles = tf.train.Saver(other_vars)
 
-      # Run training
+        def init_fn_finetune(session):
+          saver_vgg.restore(session, vgg.checkpoint_file())
+          saver_n_styles.restore(session, os.path.expanduser(FLAGS.checkpoint))
+
+        train_op = slim.learning.create_train_op(
+            total_loss, optimizer, clip_gradient_norm=FLAGS.clip_gradient_norm,
+            variables_to_train=instance_norm_vars, summarize_gradients=False)
+      else:
+        def init_fn_train(session):
+          saver_vgg.restore(session, vgg.checkpoint_file())
+
+	train_op = slim.learning.create_train_op(                       |                                                                       
+            total_loss, optimizer, clip_gradient_norm=FLAGS.clip_gradien|        saver_vgg = tf.train.Saver(slim.get_variables('vgg_16'))       
+            summarize_gradients=False)
+
+
       slim.learning.train(
           train_op=train_op,
           logdir=os.path.expanduser(FLAGS.train_dir),
