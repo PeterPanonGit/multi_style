@@ -27,10 +27,10 @@ import os
 # internal imports
 import tensorflow as tf
 
-from magenta.models.image_stylization import image_utils
-from magenta.models.image_stylization import learning
-from magenta.models.image_stylization import model
-from magenta.models.image_stylization import vgg
+import image_utils
+import learning
+import model
+import vgg
 
 slim = tf.contrib.slim
 
@@ -47,9 +47,9 @@ flags.DEFINE_integer('ps_tasks', 0,
                      'Number of parameter servers. If 0, parameters '
                      'are handled locally by the worker.')
 flags.DEFINE_integer('num_styles', None, 'Number of styles.')
-flags.DEFINE_integer('save_summaries_secs', 15,
+flags.DEFINE_integer('save_summaries_secs', 120,
                      'Frequency at which summaries are saved, in seconds.')
-flags.DEFINE_integer('save_interval_secs', 15,
+flags.DEFINE_integer('save_interval_secs', 120,
                      'Frequency at which the model is saved, in seconds.')
 flags.DEFINE_integer('task', 0,
                      'Task ID. Used when training with multiple '

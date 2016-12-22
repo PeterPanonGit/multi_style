@@ -31,8 +31,8 @@ import os
 import scipy
 import tensorflow as tf
 
-from magenta.models.image_stylization import image_utils
-from magenta.models.image_stylization import learning
+import image_utils
+import learning
 
 
 flags = tf.app.flags

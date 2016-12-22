@@ -55,6 +55,8 @@ def _load_checkpoint(sess, checkpoint):
     checkpoint = tf.train.latest_checkpoint(checkpoint)
     tf.logging.info('loading latest checkpoint file: {}'.format(checkpoint))
   model_saver.restore(sess, checkpoint)
+  with tf.variable_scope('transformer'):
+    tf.train.Saver().save("/tmp/model.ckpt")
 
 
 def _describe_style(which_styles):

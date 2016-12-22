@@ -23,9 +23,9 @@ import os
 # internal imports
 import tensorflow as tf
 
-from magenta.models.image_stylization import image_utils
-from magenta.models.image_stylization import learning
-from magenta.models.image_stylization import model
+import image_utils
+import learning
+import model
 
 slim = tf.contrib.slim
 

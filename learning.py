@@ -22,7 +22,7 @@ from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 
-from magenta.models.image_stylization import vgg
+import vgg
 
 slim = tf.contrib.slim
 
