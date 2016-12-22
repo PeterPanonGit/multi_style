@@ -134,18 +134,21 @@ def main(unused_argv=None):
         def init_fn_finetune(session):
           saver_vgg.restore(session, vgg.checkpoint_file())
           saver_n_styles.restore(session, os.path.expanduser(FLAGS.checkpoint))
+	init_fn = init_fn_finetune
 
         train_op = slim.learning.create_train_op(
             total_loss, optimizer, clip_gradient_norm=FLAGS.clip_gradient_norm,
             variables_to_train=instance_norm_vars, summarize_gradients=False)
+	print("finetune!")
       else:
         def init_fn_train(session):
           saver_vgg.restore(session, vgg.checkpoint_file())
+	init_fn = init_fn_train
 
-	train_op = slim.learning.create_train_op(                       |                                                                       
-            total_loss, optimizer, clip_gradient_norm=FLAGS.clip_gradien|        saver_vgg = tf.train.Saver(slim.get_variables('vgg_16'))       
-            summarize_gradients=False)
-
+	train_op = slim.learning.create_train_op(
+          total_loss, optimizer, clip_gradient_norm=FLAGS.clip_gradient_norm,
+summarize_gradients=False)
+	print("train from scratch!")
 
       slim.learning.train(
           train_op=train_op,
